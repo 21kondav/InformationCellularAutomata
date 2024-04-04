@@ -8,7 +8,7 @@ public interface InfoSystem {
 	//schedules tasks related to the movement of information in the system
 	public abstract void taskManager() throws IllegalStateException, IllegalAccessException;
 	//transfers information around the channels over one time step
-	public abstract void transfer();
+	public abstract void transfer() throws IllegalStateException, IllegalAccessException;
 	public int getRunTime();
 
 	/**

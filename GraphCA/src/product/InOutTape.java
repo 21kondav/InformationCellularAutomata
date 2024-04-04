@@ -112,7 +112,7 @@ public class InOutTape implements Destination, Source {
 	}
 	@Override
 	public Character getSymbol() {
-		return start.remove();
+		return start.poll();
 	}
 	public boolean inputIsEmpty() {
 		return start.isEmpty();

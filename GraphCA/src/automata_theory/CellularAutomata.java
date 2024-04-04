@@ -17,15 +17,18 @@ public class CellularAutomata implements GraphI<AbstractCell>{
 	 * Cellular Automata must have an alphabet 
 	 * @param alphabet
 	 */
-	public CellularAutomata(Set<Character> alphabet) {
+	public CellularAutomata(Set<Character> alphabet, int radius) {
 		this.alphabet = alphabet;
 		allCells = new ArrayList<AbstractCell>();
+		this.radius = radius;
 	}
 	
 	/**
 	 * Updates the automaton according to its cells
+	 * @throws IllegalAccessException 
+	 * @throws IllegalStateException 
 	 */
-	public void update() {
+	public void update() throws IllegalStateException, IllegalAccessException {
 		//local update
 		for(AbstractCell item: allCells) {
 			item.localUpdate();
@@ -48,17 +51,14 @@ public class CellularAutomata implements GraphI<AbstractCell>{
 	@Override
 	public void addNode(AbstractCell node) {
 		// NOTE Auto-generated method stub
+		if(allCells.contains(node)) return;
 		allCells.add(node);
-		int size = allCells.size(); //size of automata after addition
 		int nodePos = allCells.indexOf(node);
-		int nbrhdStart = radius - nodePos;//beginning of the neighborhood of node
-		int nbrhdEnd = radius+nodePos;//end of the neighbor hood of node
+		int nbrhdStart = nodePos-radius;//beginning of the neighborhood of node
 		//if node is at the lower end and doesn't have any neigh
-		for(int i = nbrhdStart; i < nbrhdEnd ; i++) {
+		for(int i = nbrhdStart; i <=nodePos ; i++) {
 			//if 'neighbor' below doesnt exist
-			if(i < 0) node.addNeighbor(null);
-			else if(i > size) break;
-			else connect(node, (allCells.get(i)));
+			if(i >= 0) connect(node, allCells.get(i));
 		}
 	}
 	/**
@@ -107,9 +107,7 @@ public class CellularAutomata implements GraphI<AbstractCell>{
 	@Override
 	public boolean connect(AbstractCell start, AbstractCell to) {
 		// NOTE Auto-generated method stub
-		if(!(start.hasNeighbor(to) && to.hasNeighbor(to)))
-			return start.addNeighbor(to) && to.addNeighbor(start);
-		return false;
+		return start.addNeighbor(to) && to.addNeighbor(start);
 	}
 	/**
 	 * @see GraphI#disconnect(Object, Object)
@@ -117,9 +115,7 @@ public class CellularAutomata implements GraphI<AbstractCell>{
 	@Override
 	public boolean disconnect(AbstractCell start, AbstractCell to) {
 		// NOTE Auto-generated method stub
-		if(start.hasNeighbor(to) && to.hasNeighbor(to))
-			return start.removeNeighbor(to) && to.removeNeighbor(start);
-		return false;
+		return start.removeNeighbor(to) && to.removeNeighbor(start);
 	}
 	/**
 	 * Returns an array of cells which is disconnected from the current listing
@@ -132,7 +128,10 @@ public class CellularAutomata implements GraphI<AbstractCell>{
 	public String toString() {
 		String str = "|";
 		for(AbstractCell cell: allCells) {
-			str+=cell.getCurrent()+"|";
+			Character curr =cell.getCurrent();
+			if(curr == null) str+="-|";
+			else
+				str+=cell.getCurrent()+"|";
 		}
 		return str;
 	}

@@ -1,16 +1,14 @@
 package product;
 
-import automata_theory.Cell;
+import automata_theory.AbstractCell;
 import information_theory.Source;
 import information_theory.Transmitter;
 
-public class TransmitCell extends Cell implements Transmitter{
+public class TransmitCell extends AbstractCell implements Transmitter{
 	Source from;
-	private char nullSymbol;
-	public TransmitCell(Source from, Character initial, int radius, char nullSymbol) {
-		super(initial, radius, true);
+	public TransmitCell(Source from, Character initial, int id) {
+		super(initial, true, id);
 		this.from = from;
-		this.nullSymbol = nullSymbol;
 	}
 	/**
 	 * @throws IllegalStateException when a collision occurs
@@ -19,10 +17,15 @@ public class TransmitCell extends Cell implements Transmitter{
 	@Override
 	public Character readIn() throws IllegalStateException, IllegalAccessException{
 		// NOTE Auto-generated method stu
-		char curr = from.getSymbol();
-		if(curr != nullSymbol) throw new IllegalStateException(); //thrown if collision occurs
-		overWrite(getCurrent());
+		Character curr = from.getSymbol();
 		return curr;
+	}
+	@Override
+	public Character localUpdate() throws IllegalStateException, IllegalAccessException {
+		// NOTE Auto-generated method stub
+		Character in = readIn();
+		setNextState(in);
+		return in;
 	}
 
 }

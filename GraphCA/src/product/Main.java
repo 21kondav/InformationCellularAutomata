@@ -2,33 +2,53 @@ package product;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ForkJoinPool.ManagedBlocker;
+
+import automata_theory.AbstractCell;
 
 public class Main {
 
 	public static void main(String[] args) {
 		//special symbols
 		char halt = '!';
-		char nullSymbol = '-';
 		//set up the alphabet
 		Set<Character> alphabet = new HashSet<Character>();
-		alphabet.add(halt);
-		alphabet.add(nullSymbol);
-		alphabet.add('0');
-		alphabet.add('1');
+		alphabet.addAll(new HashSet<Character>(){{
+			add(halt);
+			add('H');
+			add('e');
+			add('l');
+			add('o');
+			add('W');
+			add(' ');
+			add('r');
+			add('d');
+			}});
 		//radius
-		int radius = 1;
-		int size = 20;
+		int radius = 5;
+		int size = 10;
 		try {
-			InfoCellAuto mainAutomata = new InfoCellAuto(nullSymbol, halt, alphabet, radius, size);
-			mainAutomata.getIn().generateMessage("0101110!");
-			System.out.println(mainAutomata);
-			mainAutomata.taskManager();
-			System.out.println(mainAutomata);
+			InfoCellAuto mainAutomata = new InfoCellAuto( halt, alphabet, radius, size);
+			test(mainAutomata);
+			
 		} catch (Exception e) {
 			// NOTE Auto-generated catch block
 			e.printStackTrace();
 		}
 		
+	}
+	public static void test(InfoCellAuto mainAutomata) {
+		mainAutomata.getIn().generateMessage("Hello World!");
+		System.out.println(mainAutomata);
+
+		try {
+			mainAutomata.taskManager();
+		}catch (Exception e) {
+			// NOTE: handle exception
+			System.err.println(mainAutomata);
+			e.printStackTrace();
+		}
+		System.out.println(mainAutomata);
 	}
 	/*
 	 * Main test 

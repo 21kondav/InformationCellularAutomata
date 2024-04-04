@@ -3,23 +3,23 @@ package automata_theory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 public abstract class AbstractCell{
 	/*
 	 * Neihgborhood must be ordered and
 	 */
 	private List<AbstractCell> neighborhood; 
+	int id;
 	private Character state;
 	//NOTE: Required because we need to calculate all next states before updating
 	private Character next_state;
 	private boolean globWritePermis; //allows cell to write any char to itself from external sources
-	private char[] allowedChars; //allows cell to write any of the characters
-	public AbstractCell(Character initState, int radius) {
+	public AbstractCell(Character initState, int id) {
 		this.state = initState;
 		next_state = null;
 		globWritePermis = false;
-		allowedChars = new char[0]; // no writables allowed, TODO: check efficiency on this?
-		neighborhood = new ArrayList<AbstractCell>(radius);
-		neighborhood.set(radius, this);
+		neighborhood = new ArrayList<AbstractCell>();
+		this.id = id;
 	}
 
 	/**
@@ -27,36 +27,17 @@ public abstract class AbstractCell{
 	 * @param initState
 	 * @param writePermission
 	 */
-	public AbstractCell(Character initState, int radius, boolean writePermission) {
+	public AbstractCell(Character initState, boolean writePermission, int id) {
 		this.state = initState;
 		next_state = null;
 		this.globWritePermis = writePermission;
-		if(globWritePermis)
-			allowedChars = null;// all chars are allowed 
-		else this.allowedChars = new char[0];//if not assume no chars are allowed
-		neighborhood = new ArrayList<AbstractCell>(radius);
-		neighborhood.set(radius, this);
+	
+		neighborhood = new ArrayList<AbstractCell>();
+		this.id = id;
 	}
-	public AbstractCell(Character initState, int radius, char... allowedChars) {
-		this.state = initState;
-		next_state = null;
-		this.allowedChars = allowedChars;//only the characters given are allowed
-		Arrays.sort(allowedChars); //for easy access
-		neighborhood = new ArrayList<AbstractCell>(radius);
-		neighborhood.set(radius, this);
-	}
-	public void overWrite(Character c) throws IllegalAccessException{
-		//if no global permission and not assigned any character then throw
-		if(allowedChars.length == 0)
-			throw new IllegalAccessException("The cell calling this method does not have write permission for any character set.");
-		
-		else if(globWritePermis || Arrays.binarySearch(allowedChars, c) >= 0) {
-			state = c;
-			return;
-		}
-		throw new IllegalAccessException("The character given was not found in the set of allowed characters");
-		
- 	}
+
+
+
 	/**
 	 * Semi-constructor
 	 * Copies current and next state, not neighbors
@@ -65,12 +46,21 @@ public abstract class AbstractCell{
 	public AbstractCell(AbstractCell from) {
 		this.state = from.state;
 		this.next_state = from.next_state;
-		this.allowedChars = from.allowedChars;
 		this.globWritePermis = from.globWritePermis;
 		this.neighborhood = from.neighborhood;
+		this.id = from.id;
 		
 	}
-	public List<AbstractCell> getNeihgborhood(){
+	public void overWrite(Character c) throws IllegalAccessException{
+		//if no global permission and not assigned any character then throw
+		 if(globWritePermis) {
+			state = c;
+			return;
+		}		
+		throw new IllegalAccessException("The character given was not found in the set of allowed characters");
+		
+ 	}
+	public List<AbstractCell> getNeighborhood(){
 		return neighborhood;
 	}
 	/**
@@ -108,12 +98,35 @@ public abstract class AbstractCell{
 	public void updateState() {
 		this.state = next_state;
 	}
+	public void setNextState(Character c) {
+		next_state = c;
+	}
 	/**
 	 * - Returns the symbol to replace current state after update 
 	 * - Calculates 'next_state'
 	 * @return S - updated symbol
+	 * @throws IllegalAccessException 
+	 * @throws IllegalStateException 
 	 */
-	public abstract Character localUpdate();
+	public abstract Character localUpdate() throws IllegalStateException, IllegalAccessException;
 	//Maybe needed? public abstract S getNeighbor(int idx);
+	@Override
+	public String toString() {
+		return id+"+"+state;
+	}
 
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		AbstractCell other = (AbstractCell) obj;
+		return  globWritePermis == other.globWritePermis
+				&& id == other.id && Objects.equals(neighborhood, other.neighborhood)
+				&& Objects.equals(next_state, other.next_state) && Objects.equals(state, other.state);
+	}
 }
