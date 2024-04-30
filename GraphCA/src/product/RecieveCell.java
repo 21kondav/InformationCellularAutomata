@@ -18,7 +18,7 @@ public class RecieveCell extends AbstractCell implements Receiver {
 		// NOTE Auto-generated method stub
 		Character curr = getCurrent();
 		
-		if(curr != null) {//don't send null characters, they are assumed to contain no information
+		if(curr != null ) {//don't send null characters, they are assumed to contain no information
 			to.recieve(curr);//send symbol to output
 		}
 

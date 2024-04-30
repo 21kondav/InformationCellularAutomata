@@ -1,10 +1,11 @@
 package product;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.Function;
-
 import automata_theory.AbstractCell;
 import automata_theory.CellularAutomata;
 import information_theory.Destination;
@@ -19,16 +20,22 @@ public class InfoCellAuto extends CellularAutomata implements InfoSystem{
 	private TransmitCell trans;
 	private RecieveCell recieve;
 	private int relativeRunTime;
+	private String testName;
+	private int size;
 	public InfoCellAuto(char haltSymbol, Set<Character> alphabet, int radius, int size) throws Exception {
 		super(alphabet, radius);
+		//labels r-radius, s-size, A-alphabet size
 		this.readWrite = new InOutTape();
 		trans = new TransmitCell(readWrite, null, 0);
 		addNode(trans);
 		for(int i = 0; i < size; i++) {
 			addNode(new ChannelCell(null, i+1));
 		}
-		recieve = new RecieveCell(readWrite, null, size+1);
+		recieve = new RecieveCell(readWrite, null, size++);
 		addNode(recieve);
+		this.haltSymbol = haltSymbol;
+		testName = "R"+radius+"_S"+size+"_A"+alphabet.size();
+		this.size = size;
 	}
 	public Source getIn() {
 		return readWrite;
@@ -45,18 +52,50 @@ public class InfoCellAuto extends CellularAutomata implements InfoSystem{
 	 */
 	@Override
 	public void taskManager() throws IllegalAccessException, IllegalStateException{
+		;
+		File f = new File("C:\\Users\\dkk20\\OneDrive\\Desktop\\entropy_data\\"+testName+"_entropy.csv");
+		try {
+			f.createNewFile();
+			f.setWritable(true);
+		} catch (IOException e) {
+				// NOTE Auto-generated catch block
+			e.printStackTrace();
+		}
+		FileWriter fw = null;
+		try {
+			fw = new FileWriter(f);
+			fw.write("time,entropy\n");
+		} catch (IOException e) {
+			// NOTE Auto-generated catch block
+			e.printStackTrace();
+		}
 		boolean halt = false;
 		//while there is still symbols on input tape or in the automata, and we are not instructed to halt
 		int count = 0;
 		while((!readWrite.inputIsEmpty()|| !isEmpty()) && !halt) {
 			transfer();
+			double ent = entropy();
+			
+			try {
+				fw.write(count+","+ent+"\n");
+			} catch (IOException e) {
+				// NOTE Auto-generated catch block
+				System.err.println("No Filewriter");
+			}
+			
+			System.out.println("Automata: " + super.toString()+ ", Entropy: "+ent);
 			if(recieve.getCurrent() != null && recieve.getCurrent() == haltSymbol ) {
 				System.out.println("Halting symbol passed");
 				halt = true;
 				continue;
 			}
-			System.out.println("Automata: " + super.toString()+ ", Entropy: "+entropy());
 			count++;
+		}
+		try {
+			fw.close();
+		} catch (IOException e) {
+			// NOTE Auto-generated catch block
+			e.printStackTrace();
 		}
 		System.out.println("Run Time: " +count);
 		relativeRunTime = count;
@@ -82,12 +121,10 @@ public class InfoCellAuto extends CellularAutomata implements InfoSystem{
 			map.replace(item, map.get(item)+1);
 			totalSymbols++;
 		}
-		BiFunction<Integer, Double, Double> log = (Integer base, Double arg) -> Math.log(base)/Math.log(arg);
 		double H = 0;
-		int n_chars = map.keySet().size();
 		for(Character c: map.keySet()) {
-			double proba = map.get(c)/(double)totalSymbols;
-			H += proba*log.apply(n_chars,proba);
+			double proba = map.get(c)/(double)size;
+			H += proba*Math.log(proba);
 		}
 		return -H;
 	}
